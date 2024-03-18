@@ -1,0 +1,44 @@
+# minimal for python
+# ---------- Initialize Simulation --------------------- 
+variable alat equal 3.8848589
+variable xdim equal ${alat}*5
+variable T equal 0.001
+variable T2 equal 1
+variable tstep equal 0.002
+variable runtime equal 10000000
+variable Srandomseed equal 1001 
+
+clear 
+units metal 
+dimension 3 
+boundary p p p
+atom_style atomic 
+
+# ---------- Create Atomistic Structure --------------------- 
+#read_data Mg_hcp.lmp 		#setting up the system
+read_data bcc_431_atoms
+
+# ---------- Define Interatomic Potential --------------------- 
+pair_style eam/fs
+pair_coeff * * Ta2_Ravelo_2013.eam.alloy Ta
+
+timestep ${tstep}
+
+# ----- perform MD -------
+#velocity all create ${T2} ${Srandomseed}
+fix 1 all npt temp ${T2} ${T} 0.01 iso 0.0 0.0 2
+
+#----- end MD ------
+thermo 10000 
+thermo_style custom step lx lx ly lz atoms temp pe lx ly lz press pxx pyy pzz
+thermo_modify lost ignore flush yes
+
+compute KE all ke/atom
+compute PE all pe/atom
+
+#dump 1 all custom 100 out_100/*.chkpt id type mass x y z 
+dump  1 all custom 5000 output-*.txt id type x y z mass c_KE c_PE
+
+write_data relaxed_*.lmp
+
+run ${runtime}
