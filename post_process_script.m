@@ -1,5 +1,5 @@
 clc
-clear all
+% clear all
 
 
 Nfile = 1001; % File averaging number
@@ -60,7 +60,7 @@ PE(filecount,1) = pe;
 % y_coord(filecount,1) = y_id;
 % z_coord(filecount,1) = z_id;
     
-filecount
+% filecount
 
 end
 
@@ -68,13 +68,13 @@ dt=0.002*500;
 time = 0:dt:1000*dt;
 time=time';
 
-figure(1)
-hold on
-plot(time(1:50:end), KE(1:50:end),'*k')
-
-figure(2)
-hold on
-plot(time(1:50:end),PE(1:50:end),'*k')
+% figure(1)
+% hold on
+% plot(time(1:50:end), KE(1:50:end),'*k')
+% 
+% figure(2)
+% hold on
+% plot(time(1:50:end),PE(1:50:end),'*k')
 
 % figure(3)
 % hold on
