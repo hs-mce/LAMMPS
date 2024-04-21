@@ -1,11 +1,11 @@
 #----------------- supercell size, lattice constant --------------------------------------
-variable        xbox equal 3
-variable        ybox equal 40
-variable        zbox equal 20
+variable        xbox equal 2
+variable        ybox equal 60
+variable        zbox equal 15
 variable        a equal 3.304
 
-variable        dx equal sqrt(2)
-variable        dy equal sqrt(2)
+variable        dx equal sqrt(6)
+variable        dy equal sqrt(3)/2
 variable        dz equal sqrt(2)
 
 
@@ -13,7 +13,7 @@ variable        dz equal sqrt(2)
 variable T equal 0.001
 variable T2 equal 2
 variable tstep equal 0.002
-variable runtime equal 100000
+variable runtime equal 500000
 variable Srandomseed equal 1001 
 
 
@@ -38,12 +38,13 @@ variable zcut2 equal ${a}*2/2
 
 # -------------- general settings --------------------------------------------------------
 dimension       3
-boundary        p p p
+boundary        p p f
 units metal
 atom_style      atomic  
 
 # ---------- Read atomistic Structure --------------------- 
 read_data ini_disc.data
+# boundary        p f f
 
 # -------------- creating a upper & lower regions and as well as - region & simulation box ----------------------
 # lattice bcc ${a} orient x 1 1 -1 orient y -1 2 1 orient z 1 0 1
@@ -69,7 +70,7 @@ read_data ini_disc.data
 
 # ---------- Define Interatomic Potential --------------------- 
 pair_style eam/fs
-pair_coeff * * Ta2_Ravelo_2013.eam.alloy Ta Ta
+pair_coeff * * Ta_orig_FS.eam2.alloy Ta Ta
 
 #pair_style      eam/alloy
 #pair_coeff      * * FeNiCrCoCu-heafixed.eam.alloy.txt  Ni Ni 
@@ -83,28 +84,31 @@ write_data ini.data
 # region plane block INF INF 93.2 93.6 ${zhalf} ${zlength} units box
 # group plane region plane
 
-region  blayer block INF INF INF INF INF 0.5 units box
-group blayer region blayer
+#region  blayer block INF INF INF INF INF 0.5 units box
+#group blayer region blayer
 
 region  ulayer block INF INF INF INF 85 INF units box
 group ulayer region ulayer
 
 # delete_atoms region plane
-delete_atoms region blayer
+# delete_atoms region blayer
 delete_atoms region ulayer
 
 # write_data ini2.data
 # --------------------------------------------------------------------------------------
 
 #### define boundary atoms ####
-region 10 block INF INF INF 0.2 2 INF units box
+region 10 block INF INF INF 2 2 INF units box
 group lb region 10
 
 region 11 block INF INF INF INF INF 1.99 units box
 group bb region 11
 
-region 12 block INF INF 185.5 INF 2 INF units box
+region 12 block INF INF 169 INF 2 INF units box
 group rb region 12
+
+region 13 block INF INF INF INF 50 INF units box
+group ub region 13 
 
 
 #### fix the boundary atoms ####
@@ -114,12 +118,14 @@ group rb region 12
 velocity lb set 0 0 0 
 velocity bb set 0 0 0 
 velocity rb set 0 0 0 
+velocity ub set 0 0 0 
 
 fix 10 lb setforce 0 0 0 
 fix 11 bb setforce 0 0 0 
-fix 12 rb setforce 0 0 0 
+fix 12 rb setforce 0 0 0
+fix 13 ub setforce 0 0 0 
 
-# change_box all z delta 0 30 units box
+change_box all y delta 0 2 boundary p f f units box
 
 # boundary        p f f
 
@@ -127,19 +133,26 @@ timestep ${tstep}
 
 # ----- perform MD -------
 velocity all create ${T2} ${Srandomseed}
-fix 1 all npt temp ${T2} ${T} 0.01 iso 0.0 0.0 2
-
-#----- end MD ------
-thermo 100 
-thermo_style custom step lx lx ly lz atoms temp pe lx ly lz press pxx pyy pzz
-thermo_modify lost ignore flush yes
+# fix 1 all npt temp ${T2} ${T} 0.01 iso 0.0 0.0 2
+# fix 1 all nvt temp ${T2} ${T} 0.01
 
 compute KE all ke/atom
 compute PE all pe/atom
+compute KET all ke
+compute PET all pe
+
+#----- end MD ------
+thermo 2
+thermo_style custom step lx lx ly lz atoms temp pe lx ly lz press c_KET c_PET
+thermo_modify lost ignore flush yes
 
 #dump 1 all custom 100 out_100/*.chkpt id type mass x y z 
-dump  1 all custom 50 output-*.txt id type x y z mass c_KE c_PE
+dump  1 all custom 5 output-*.txt id type x y z mass c_KE c_PE
+
+min_style    cg
+min_modify   line backtrack
+minimize     1e-8 1.0e-10 10000 10000
 
 write_data relaxed_*.lmp
 
-run ${runtime}
+#run ${runtime}
