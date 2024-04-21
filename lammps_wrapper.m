@@ -3,7 +3,7 @@ clear all; clc;
 
 A = 2.591061; d = 4.076980; rend=5;
 input_array = [A d rend];
-pert = 1.0e-1;
+pert = 1.0e-2;
 
 original_fs(A, d, rend);
 system(['lmp -in in.elastic']);
@@ -29,6 +29,7 @@ for i = 1:length(input_array)
     % computing the new KE, PE
     original_fs(A, d, rend);
     system(['lmp -in in.elastic']);
+    post_process_script;
 
     % gettin derivative
     KE_pert(i, :) = (KE - KE_0)/(perturbation_of_param);
