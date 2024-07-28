@@ -1,4 +1,4 @@
-function original_fs(A, d, rend)
+function original_fs(A, d, rend, potential_params)
 
     % %%%%% Energy per atom using extended finnis and sinclair potential (Tantalum) %%%%%
     % 
@@ -113,8 +113,14 @@ function original_fs(A, d, rend)
     
     
     %% pair-potential parameters
-    c=4.20; c0 = 1.2157373; c1 = 0.0271471; c2 = -0.1217350; c3 = 0; c4 = 0;
+%     c=4.20; c0 = 1.2157373; c1 = 0.0271471; c2 = -0.1217350; c3 = 0; c4 = 0;
     %c=3.77;
+    c = potential_params(1);
+    c0 = potential_params(2);
+    c1 = potential_params(3);
+    c2 = potential_params(4);
+    c3 = potential_params(5);
+    c4 = potential_params(6);
     
     %%% pair potential %%%%
     %nr=5000; dr = rend/(nr-1);
